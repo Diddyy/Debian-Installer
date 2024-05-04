@@ -7,11 +7,11 @@ LABEL       org.opencontainers.image.licenses=MIT
 
 ENV         DEBIAN_FRONTEND=noninteractive
 
-# Update and install necessary packages including gcc for compiling
-RUN apt update && apt upgrade -y \
-    && apt -y --no-install-recommends install \
-       ca-certificates curl git unzip zip tar jq wget \
-       build-essential gcc g++
+# Update and install necessary packages
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y ca-certificates curl git unzip zip tar jq wget \
+    && apt-get install -y build-essential gcc g++ make autoconf libc-dev pkg-config \
+    && apt-get install -y php-dev libphp-embed
        
 # Only install the needed steamcmd packages on the AMD64 build
 RUN         if [ "$(uname -m)" = "x86_64" ]; then \
