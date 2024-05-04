@@ -37,8 +37,6 @@ RUN CGO_ENABLED=1 XCADDY_GO_BUILD_FLAGS="-ldflags '-w -s'" \
     --with github.com/dunglas/mercure/caddy \
     --with github.com/dunglas/vulcain/caddy
 
-FROM debian:bookworm-slim AS runtime
-
 # Copy the binaries from the build stage
 COPY --from=builder /usr/local/bin/caddy /usr/local/bin/caddy
 COPY --from=builder /usr/local/bin/frankenphp /mnt/server/frankenphp
