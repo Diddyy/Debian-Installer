@@ -11,7 +11,7 @@ ENV CGO_ENABLED=1 \
 
 # Build FrankenPHP with custom modules including Cloudflare DNS module
 RUN xcaddy build \
-    --output /usr/local/bin/frankenphp \
+    --output /usr/bin/frankenphp \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/dunglas/frankenphp=./ \
     --with github.com/dunglas/frankenphp/caddy=./caddy/ \
@@ -25,19 +25,14 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libcap2-bin \
+    && useradd -m -d /home/container container \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the FrankenPHP binary from the builder stage
-COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
+USER        container
+ENV         USER=container HOME=/home/container
+WORKDIR     /home/container
 
-# Set up directory for server files and move FrankenPHP there
-RUN mkdir -p /mnt/server/public \
-    && mv /usr/local/bin/frankenphp /mnt/server/frankenphp \
-    && setcap 'cap_net_bind_service=+ep' /mnt/server/frankenphp \
-    && chmod +x /mnt/server/frankenphp
-
-# Set work directory
-WORKDIR /mnt/server
-
-# Command to run when starting the container
-CMD ["/mnt/server/frankenphp", "run"]
+COPY        --chown=container:container ./../entrypoint.sh /entrypoint.sh
+RUN         chmod +x /entrypoint.sh
+ENTRYPOINT    ["/usr/bin/frankenphp", "run", "--"]
+CMD         ["/entrypoint.sh"]
