@@ -1,0 +1,30 @@
+name: Build and Release FrankenPHP
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build FrankenPHP executable
+      run: |
+        docker build . --file Dockerfile --output type=local,dest=.
+
+    - name: Upload FrankenPHP executable to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      with:
+        files: frankenphp
+        tag_name: ${{ github.ref }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
