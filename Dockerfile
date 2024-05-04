@@ -1,25 +1,10 @@
-FROM        --platform=$TARGETOS/$TARGETARCH debian:bookworm-slim AS builder
+# syntax=docker/dockerfile:1
+FROM dunglas/frankenphp AS builder
 
-LABEL       author="Josh" maintainer="Diddyy@users.noreply.github.com"
+LABEL author="Josh" maintainer="Diddyy@users.noreply.github.com"
+LABEL org.opencontainers.image.source="https://github.com/Diddyy/Debian-Installer"
+LABEL org.opencontainers.image.licenses=MIT
 
-LABEL       org.opencontainers.image.source="https://github.com/Diddyy/Debian-Installer"
-LABEL       org.opencontainers.image.licenses=MIT
-
-ENV         DEBIAN_FRONTEND=noninteractive
-
-# Update and install necessary packages
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y ca-certificates curl git unzip zip tar jq wget \
-    && apt-get install -y build-essential gcc g++ make autoconf libc-dev pkg-config \
-    && apt-get install -y php-dev libphp-embed
-       
-# Only install the needed steamcmd packages on the AMD64 build
-RUN         if [ "$(uname -m)" = "x86_64" ]; then \
-                dpkg --add-architecture i386 && \
-                apt update && \
-                apt -y install lib32gcc-s1 libsdl2-2.0-0:i386; \
-            fi
-            
 # Install Go for building Caddy
 RUN wget https://golang.org/dl/go1.22.2.linux-amd64.tar.gz \
     && tar -xvf go1.22.2.linux-amd64.tar.gz \
@@ -41,11 +26,12 @@ RUN CGO_ENABLED=1 XCADDY_GO_BUILD_FLAGS="-ldflags '-w -s'" \
     --with github.com/dunglas/vulcain/caddy
 
 # Runtime stage
-FROM debian:bookworm-slim AS runtime
+FROM dunglas/frankenphp AS runtime
 
 # Copy the binaries from the build stage
 COPY --from=builder /usr/local/bin/caddy /usr/local/bin/caddy
-COPY --from=builder /usr/local/bin/frankenphp /mnt/server/frankenphp
+COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 
-# Clean up
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Set capabilities to allow binding to well-known ports
+RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/caddy \
+    && setcap 'cap_net_bind_service=+ep' /usr/local/bin/frankenphp
