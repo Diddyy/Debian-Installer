@@ -17,12 +17,14 @@ jobs:
 
     - name: Build FrankenPHP executable
       run: |
-        docker build . --file Dockerfile --output type=local,dest=.
+        docker build . --file Dockerfile --tag frankenphp:latest
+        mkdir -p output
+        docker run --rm --entrypoint cat frankenphp:latest /usr/bin/frankenphp > output/frankenphp
 
     - name: Upload FrankenPHP executable to GitHub Releases
       uses: softprops/action-gh-release@v1
       with:
-        files: frankenphp
+        files: output/frankenphp
         tag_name: ${{ github.ref }}
         draft: false
         prerelease: false
