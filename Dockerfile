@@ -18,10 +18,10 @@ RUN         if [ "$(uname -m)" = "x86_64" ]; then \
             fi
             
 # Install Go for building Caddy
-RUN wget https://golang.org/dl/go1.12.2.linux-amd64.tar.gz \
-    && tar -xvf go1.12.2.linux-amd64.tar.gz \
+RUN wget https://golang.org/dl/go1.22.2.linux-amd64.tar.gz \
+    && tar -xvf go1.22.2.linux-amd64.tar.gz \
     && mv go /usr/local \
-    && rm go1.12.2.linux-amd64.tar.gz
+    && rm go1.22.2.linux-amd64.tar.gz
 
 ENV PATH="/usr/local/go/bin:${PATH}"
 
