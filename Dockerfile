@@ -1,4 +1,4 @@
-FROM        --platform=$TARGETOS/$TARGETARCH debian:bookworm-slim
+FROM        --platform=$TARGETOS/$TARGETARCH debian:bookworm-slim AS builder
 
 LABEL       author="Josh" maintainer="Diddyy@users.noreply.github.com"
 
@@ -36,6 +36,9 @@ RUN CGO_ENABLED=1 XCADDY_GO_BUILD_FLAGS="-ldflags '-w -s'" \
     --with github.com/dunglas/frankenphp/caddy \
     --with github.com/dunglas/mercure/caddy \
     --with github.com/dunglas/vulcain/caddy
+
+# Runtime stage
+FROM debian:bookworm-slim AS runtime
 
 # Copy the binaries from the build stage
 COPY --from=builder /usr/local/bin/caddy /usr/local/bin/caddy
