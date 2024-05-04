@@ -17,16 +17,27 @@ RUN xcaddy build \
     --with github.com/dunglas/frankenphp/caddy=./caddy/ \
     --with github.com/dunglas/mercure/caddy \
     --with github.com/dunglas/vulcain/caddy
-    # Add extra Caddy modules here if needed
 
-# Runtime stage
-FROM dunglas/frankenphp AS runner
+# Start with a clean stage to reduce final image size
+FROM debian:bookworm-slim
 
-# Ensure the directory /mnt/server exists
-RUN mkdir -p /mnt/server
+# Install any necessary dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libcap2-bin \
+    && rm -rf /var/lib/apt/lists/*
 
-# Replace the official FrankenPHP binary with the custom built one
-COPY --from=builder /usr/local/bin/frankenphp /mnt/server/frankenphp
+# Copy the FrankenPHP binary from the builder stage
+COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 
-# Ensure proper permissions and capabilities
-RUN setcap 'cap_net_bind_service=+ep' /mnt/server/frankenphp
+# Set up directory for server files and move FrankenPHP there
+RUN mkdir -p /mnt/server/public \
+    && mv /usr/local/bin/frankenphp /mnt/server/frankenphp \
+    && setcap 'cap_net_bind_service=+ep' /mnt/server/frankenphp \
+    && chmod +x /mnt/server/frankenphp
+
+# Set work directory
+WORKDIR /mnt/server
+
+# Command to run when starting the container
+CMD ["/mnt/server/frankenphp", "run"]
