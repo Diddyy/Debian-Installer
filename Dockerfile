@@ -7,9 +7,12 @@ LABEL       org.opencontainers.image.licenses=MIT
 
 ENV         DEBIAN_FRONTEND=noninteractive
 
-RUN      apt update && apt upgrade -y \
-         && apt -y --no-install-recommends install ca-certificates curl git unzip zip tar jq wget
-
+# Update and install necessary packages including gcc for compiling
+RUN apt update && apt upgrade -y \
+    && apt -y --no-install-recommends install \
+       ca-certificates curl git unzip zip tar jq wget \
+       build-essential gcc g++
+       
 # Only install the needed steamcmd packages on the AMD64 build
 RUN         if [ "$(uname -m)" = "x86_64" ]; then \
                 dpkg --add-architecture i386 && \
@@ -31,7 +34,7 @@ RUN curl -sSL "https://github.com/caddyserver/xcaddy/releases/download/v0.4.0/xc
 # Build custom Caddy with Cloudflare DNS module
 RUN CGO_ENABLED=1 XCADDY_GO_BUILD_FLAGS="-ldflags '-w -s'" \
     xcaddy build \
-    --output frankenphp \
+    --output /usr/local/bin/frankenphp \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/dunglas/frankenphp/caddy \
     --with github.com/dunglas/mercure/caddy \
