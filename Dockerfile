@@ -11,7 +11,7 @@ ENV         DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y ca-certificates curl git unzip zip tar jq wget \
     && apt-get install -y build-essential gcc g++ make autoconf libc-dev pkg-config \
-    && apt-get install -y php php-cli php-dev libphp-embed
+    && apt-get install -y php php-cli php-dev libphp-embed clang
        
 # Only install the needed steamcmd packages on the AMD64 build
 RUN         if [ "$(uname -m)" = "x86_64" ]; then \
